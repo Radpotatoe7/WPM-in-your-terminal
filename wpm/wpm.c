@@ -207,6 +207,8 @@ void run_test(const char *target_text) {
     }
 
     printf("\n\nCharacters matched: %d / %d\n", correct_chars, total_keystrokes);
+    if(total_keystrokes!=0){//or else it will crash.
+        printf("\n Accuracy: %.2f",((double)correct_chars/total_keystrokes * 100));}
 }
 
 //MAIN PART
