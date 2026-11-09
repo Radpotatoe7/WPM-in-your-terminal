@@ -9,6 +9,6 @@ Note: **ONLY WORKS IN LINUX.** This C program uses libraries and input functions
 4. The app should be running now.
 
 # Things to add
-[ ] Adding calculation of wpm speed
-[ ] Better looking interface
-[ ] Space Spam Prevention
+- Adding calculation of wpm speed
+- Better looking interface
+- Space Spam Prevention
