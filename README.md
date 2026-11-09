@@ -3,7 +3,8 @@ A simple C program which runs a WPM test in your terminal , with difficulty leve
 Note: **ONLY WORKS IN LINUX.** This C program uses libraries and input functions that only work in linux. This will NOT work in windows
 
 # How to run: (LINUX ONLY)
-1. Download the wpm folder , which contains the c file and the texts folder (source for the displayed text).
+(0. If you are new to github , you usually download the files by pressing the big green code button on the top right of the index of contents , then download it as zip and extract it)
+1. Download/Extract the wpm folder , which contains the c file and the texts folder (source for the displayed text).
 2. Open your terminal , cd into the wpm folder , and run `gcc wpm.c -o wpm` to create an executable from the C source code.
 3. Run `./wpm` in your terminal
 4. The app should be running now.
