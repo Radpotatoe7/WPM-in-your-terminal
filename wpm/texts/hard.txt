@@ -1,0 +1,36 @@
+# Step 1: Initialize environment and check mounted partitions
+$ sudo lsblk -f && df -hT | grep -E '^/dev/(sd|nvme|mapper)'
+Before modifying any configuration files under /etc/, ensure you create an atomic backup:
+$ sudo cp -av /etc/fstab /etc/fstab.bak.$(date +%F_%T)
+If the root filesystem /dev/mapper/vg0-root is throwing I/O errors, drop to single-user mode immediately:
+# systemctl isolate rescue.target || init 1
+Unmount non-critical block devices and execute a forced, non-destructive filesystem consistency check:
+# fsck.ext4 -v -f -c /dev/nvme0n1p2 2>&1 | tee -a /var/log/fsck_repair.log
+
+# Step 2: Kernel parameters and systemd service management
+Inspect currently running kernel modules and drop problematic drivers using modprobe:
+$ lsmod | awk '$3 > 0 {print $1, $3}' | sort -k2 -nr | head -n 10
+# modprobe -r -v nouveau && echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+Reload systemd daemon configurations after writing a custom unit file inside /etc/systemd/system/wpm-daemon.service:
+# systemctl daemon-reload && systemctl enable --now wpm-daemon.service
+Check for failed units across the entire initialization tree:
+$ systemctl --failed --type=service --state=failed -o json-pretty
+
+# Step 3: Network diagnostics, sockets, and firewall rules
+Track active TCP listening sockets, process identifiers, and inode numbers:
+$ sudo ss -tulpn | awk '{print $1, $5, $7}' | column -t
+To monitor packet drops along eth0, configure an iptables drop rule with detailed logging:
+# iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set --name SSH_BURST
+# iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 -j DROP
+Alternatively, use nftables syntax:
+# nft add rule inet filter input tcp dport { 80, 443, 8080 } ct state new accept
+
+# Step 4: Text manipulation, pipeline gymnastics, and permissions
+Search for world-writable directories and files with SUID bits enabled across /usr/bin and /opt:
+$ find / -type f \( -perm -4000 -o -perm -2000 \) -exec ls -la {} + 2>/dev/null
+Extract unique IP addresses from a raw Nginx access log file using awk, sed, and sort:
+$ cat /var/log/nginx/access.log | sed -E 's/([0-9]{1,3}\.){3}[0-9]{1,3}/&/' | awk '{print $1}' | sort -u -V
+Sanitize file permissions recursively across the target build tree:
+$ chmod -R u=rwX,go=rX ./build/ && chown -R root:wheel /opt/custom_bin/
+Verify dynamic library linkages using ldd before launching the compiled binary:
+$ LD_DEBUG=libs ldd -r ./bin/wpm_test 2>&1 | grep -i "not found"
