@@ -1,0 +1,55 @@
+name: Update Card Assets
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout profile
+        uses: actions/checkout@v4
+        with:
+          path: profile
+
+      - name: Checkout card generator
+        uses: actions/checkout@v4
+        with:
+          repository: yorha-dev/yorha_card_generator
+          path: generator
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Generate SVG
+        working-directory: generator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python generator.py --username radpotatoe7
+
+      - name: Update profile card
+        run: |
+          mkdir -p profile/assets
+          cp generator/output/*.svg profile/assets
+
+      - name: Commit changes
+        working-directory: profile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add assets/*
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update cards"
+            git push
+          fi
