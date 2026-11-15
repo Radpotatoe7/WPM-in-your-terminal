@@ -1,4 +1,9 @@
 # WPM-in-your-terminal
+
+
+https://github.com/user-attachments/assets/db96f30a-08ae-4375-9f2e-39c5ec7adb60
+
+
 A simple C program which runs a WPM test in your terminal , with difficulty levels , and custom text support.
 Note: **ONLY WORKS IN LINUX.** This C program uses libraries and input functions that only work in linux. This will NOT work in windows
 
@@ -27,7 +32,8 @@ The test will always end in 60 seconds (1 minute) , as a standard wpm test.
 
 ## Accuracy shown 
 
-<img width="309" height="42" alt="screenshot_2026-11-09_16-08-56" src="https://github.com/user-attachments/assets/95e7a45d-f142-4acf-8edf-1f9cbe826431" />
+<img width="345" height="121" alt="screenshot_2026-11-15_13-31-37" src="https://github.com/user-attachments/assets/a4f2a9f5-0a24-4429-9a9d-340ebf4919ec" />
+
 
 The test will show how many words were matched with the source text, giving an accuracy check.
 
@@ -46,7 +52,8 @@ If you want to add your own custom text , make sure to add it as one big line , 
 
 
 # Things to add
-- Adding calculation of wpm speed
+- ~~Adding calculation of wpm speed~~
+- Provide better stock text
 - Better looking interface
 - Space Spam Prevention
 - Add custom timer
