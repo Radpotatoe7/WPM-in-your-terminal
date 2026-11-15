@@ -52,7 +52,7 @@ int sourceText(int diff, char *dest, size_t max_len){ //WORKING YESSSS
     //Rewind back to the beginning of the file and finding target
     rewind(f);
     int i = 0; // Stores current line index
-    while (fgets(dest, max_len, f)) {
+    while (fgets(dest, max_len, f)){
         if (strlen(dest) <= 1) continue; // Skip blank lines
         if (i == target_line) {
             // Strip the trailing newline character (\r or \n)
@@ -67,17 +67,15 @@ int sourceText(int diff, char *dest, size_t max_len){ //WORKING YESSSS
 
 //MAKING TERMINAL WRITE FUNCTIONS
 // Restore terminal settings using the struct we saved ealier on exit
-void disable_raw_mode(void) { tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);} 
+void disable_raw_mode(void){ tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);} 
 // Enable raw character-by-character input
-void enable_raw_mode(void) {
+void enable_raw_mode(void){
     if (tcgetattr(STDIN_FILENO, &orig_termios) == -1) {//IMPORTANT DO NOT REMOVE
         perror("tcgetattr");
         exit(EXIT_FAILURE);
     }//if we dont get the settings to restore , we dont go
-
     atexit(disable_raw_mode);//VERY IMPORTANT DO NOT REMOVE (cant believe a program can be this dangerous)
-
-    struct termios raw = orig_termios;
+    struct termios raw = orig_termios;//filling config in the struct we made.
     // Disabling canon mode (line buffering) and automatic echo so that the wpm can be like a wpm test
     raw.c_lflag &= ~(ICANON | ECHO);//changing the c_lflag attributes of ICANON and ECHO
 
@@ -97,8 +95,8 @@ void print_timer(int seconds_left) {
 }
 
 //RUNNING FUNCTION
-void run_test(const char *target_text) {
-    enable_raw_mode();
+void run_test(const char *target_text){
+    enable_raw_mode();//O_O
 
     // Clear screen and leave the top line for the timer
     printf("\033[2J\033[2;1H");
@@ -119,52 +117,44 @@ void run_test(const char *target_text) {
     pfd.fd = STDIN_FILENO;
     pfd.events = POLLIN;
 
-    while (current_idx < text_len) {
+    while (current_idx < text_len){//timer loop
         int elapsed = (int)difftime(time(NULL), start_time);
         int remaining = TEST_DURATION - elapsed;
 
-        if (remaining <= 0) {
+        if (remaining <= 0){
             print_timer(0);
-            printf("\n\nTime's up! (60s elapsed)\n");
+            printf("\n\nDing,Ding,Ding, Time's up!! (60s elapsed)\n");
             break;
         }
 
         // Only redraw the timer text when the second actually ticks down
-        if (remaining != last_printed_remaining) {
+        if (remaining != last_printed_remaining){
             print_timer(remaining);
             last_printed_remaining = remaining;
         }
 
         // Wait up to 100 milliseconds for a keypress
         int ret = poll(&pfd, 1, 100);
-
-        if (ret < 0) {
+        if (ret < 0){
             perror("poll");
             break;
         }
 
         // Timeout expired: no key pressed during the 100ms interval, loop around to update timer
-        if (ret == 0) {
-            continue;
-        }
-
+        if (ret == 0) continue;
         // A key is ready to be read
         char ch;
-        if (read(STDIN_FILENO, &ch, 1) <= 0) {
-            continue;
-        }
-
+        if (read(STDIN_FILENO, &ch, 1) <= 0) continue;
         // Ctrl+C handling
-        if (ch == 3) {
+        if (ch == 3){ //ctrl+c combo is counted as ASCII 3.
             printf("\nOk bye bye.\n");
             break;
         }
-
         // Handle Backspace (127 or 8)
-        if (ch == 127 || ch == 8) {
-            if (current_idx > 0) {
+        if (ch == 127 || ch == 8){
+            if (current_idx > 0){
                 current_idx--;
-                if (is_correct[current_idx]) {
+                if (is_correct[current_idx]){//kinda bad for just clearing spaces , but fine for now.
                     correct_chars--;
                     is_correct[current_idx] = 0;
                 }
@@ -175,15 +165,13 @@ void run_test(const char *target_text) {
         }
 
         // Skip non-printable characters
-        if (ch < 32 || ch > 126) {
-            continue;
-        }
+        if (ch < 32 || ch > 126) continue;
 
         total_keystrokes++;
 
         // Space blocking check
-        if (target_text[current_idx] == ' ') {
-            if (ch == ' ') {
+        if (target_text[current_idx] == ' '){
+            if (ch == ' '){
                 printf(" ");
                 correct_chars++;
                 is_correct[current_idx] = 1;
@@ -191,24 +179,26 @@ void run_test(const char *target_text) {
             } else {
                 printf("%s%c%s\b \b", COLOR_RED, ch, COLOR_RESET);
             }
-        } else {//Colouring book
-            if (ch == target_text[current_idx]) {
+        } else{//Colouring book
+            if (ch == target_text[current_idx]){//correct text
                 printf("%s%c%s", COLOR_GREEN, ch, COLOR_RESET);
                 correct_chars++;
                 is_correct[current_idx] = 1;
-            } else {
+            } else{//wrong text
                 printf("%s%c%s", COLOR_RED, ch, COLOR_RESET);
                 is_correct[current_idx] = 0;
             }
             current_idx++;
         }
-
+        //Write Time loop end
         fflush(stdout);
     }
 
-    printf("\n\nCharacters matched: %d / %d\n", correct_chars, total_keystrokes);
+    printf("\nCharacters matched: %d / %d", correct_chars, total_keystrokes);
     if(total_keystrokes!=0){//or else it will crash.
         printf("\n Accuracy: %.2f",((double)correct_chars/total_keystrokes * 100));}
+    //a "word" is defined as a 5 characters , including spaces and punctuations. pretty weird.
+    printf("\n WPM: %.2f \n Raw WPM: %.2f",((double)correct_chars/5.0),((double)total_keystrokes/5.0));
 }
 
 //MAIN PART
